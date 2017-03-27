@@ -56,6 +56,15 @@ else
     openstack role create admin
 fi
 openstack role add --project admin --user admin admin
+
+$cmd_openstack project list | $cmd_grep service
+if [ $? = 0 ]
+then
+    echo "service project already available"
+else
+    openstack project create --domain default --description "Service Project" service
+fi
+
 $cmd_openstack project list | $cmd_grep demo
 if [ $? = 0 ]
 then
