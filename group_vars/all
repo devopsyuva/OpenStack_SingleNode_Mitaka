@@ -1,0 +1,16 @@
+---
+controller_localhost: localhost
+controller: "{{ hostvars[groups['singlenode'][0]]['ansible_hostname'] }}"
+controller_ipaddress: "{{ hostvars[groups['singlenode'][0]]['ansible_' + interface_name ]['ipv4']['address'] }}" 
+interface_name: eth1
+mysql_root_password: test123
+rabbitmq_password: test123
+keystonedb_password: test123
+os_url: http://{{ controller_localhost }}:35357/v3
+adminuser_password: test123
+serviceuser_password: test123
+demo_user_pass: test123
+glancedb_password: test123
+novadb_password: test123
+neutrondb_password: test123
+metadata_secret: test123

@@ -1,0 +1,42 @@
+---
+- name: set root password for mariadb server before installing
+  debconf: name='mariadb-server'
+           question='mysql-server/{{ item }}'
+           value='{{ mysql_root_password }}'
+           vtype='password'
+  with_items:
+    - root_password
+    - root_password_again
+  when: ansible_os_family == "Debian"
+
+- name: Install mariadb package on Debian servers
+  apt: name={{ item }} state=present force=yes
+  with_items:
+    - mariadb-server
+    - python-pymysql
+    - python-mysqldb
+  when: ansible_os_family == "Debian"
+
+- name: Install mariadb package on Redhat machines
+  yum: name={{ item }} state=present
+  with_items:
+    - mariadb-server
+    - mariadb
+    - python2-PyMySQL
+  when: ansible_os_family == "RedHat"
+
+- name: create openstack.cnf file under "/etc/mysql/conf.d"
+  template: src=openstack.cnf.j2 dest=/etc/mysql/conf.d/openstack.cnf mode=0644
+  when: ansible_os_family == "Debian"
+
+- name: create openstack.cnf file under "/etc/my.cnf.d/"
+  template: src=openstack.cnf.j2 dest=/etc/my.cnf.d/openstack.cnf mode=0644
+  when: ansible_os_family == "RedHat"
+
+- name: restart mysql service on Debian machines
+  service: name=mysql state=restarted
+  when: ansible_os_family == "Debian"
+
+- name: restart mariadb service on RedHat/CentOS 7 machines
+  systemd: name=mariadb state=restarted enabled=yes
+  when: ansible_os_family == "RedHat"

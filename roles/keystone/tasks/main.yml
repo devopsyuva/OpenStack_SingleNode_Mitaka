@@ -1,0 +1,89 @@
+---
+# tasks file for keystone
+- name: Create database for keystone
+  mysql_db: login_host=localhost login_user=root login_password={{ mysql_root_password }} name=keystone state=present
+  when: ansible_os_family == "Debian"
+
+- name: Create keystone database user and assign privileges
+  mysql_user: login_host=localhost login_user=root login_password={{ mysql_root_password }} name=keystone password={{ keystonedb_password }} priv='*.*:ALL' host={{ item }} state=present
+  with_items:
+    - localhost
+    - '%'
+  when: ansible_os_family == "Debian"
+
+- name: Checking Administration Token
+  stat: path=/root/token
+  register: admin_tok
+
+- name: create administration token during initial configuration
+  shell: openssl rand -hex 10 > token
+  when: admin_tok.stat.exists != True 
+
+- name: regietr the token value to key=ADMIN_TOKEN
+  shell: cat /root/token
+  register: TOKEN  
+
+- name: disable keystone service
+  lineinfile: dest=/etc/init/keystone.override line=manual create=yes
+  when: ansible_os_family == "Debian"
+
+- name: stop keystone service if its running
+  service: name=keystone state=stopped
+  ignore_errors: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install keystone, apache2 and libapache2-mod-wsgi packages
+  apt: name={{ item }} state=present force=yes
+  with_items:
+    - keystone
+    - apache2
+    - libapache2-mod-wsgi
+  when: ansible_os_family == "Debian"
+
+- name: update the keystone.conf file
+  ini_file: dest=/etc/keystone/keystone.conf
+            section={{ item.section }}
+            option={{ item.option }}
+            value={{ item.value }}
+            backup=yes
+  with_items:
+    - { section: 'DEFAULT', option: 'admin_token', value: "{{ TOKEN.stdout }}" }
+    - { section: 'database', option: 'connection', value: "mysql+pymysql://keystone:{{ keystonedb_password }}@localhost/keystone" }
+    - { section: 'token', option: 'provider', value: "fernet" }
+
+- name: sync the keystone database
+  command: su -s /bin/sh -c "keystone-manage db_sync" keystone
+
+- name: initialize the fernet key
+  command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+
+- name: update the apache2 config file with server hostname
+  lineinfile: dest=/etc/apache2/apache2.conf insertafter='#ServerRoot' line='ServerName localhost' backup=yes
+  when: ansible_os_family == "Debian"
+
+- name: create wsgi-keystone.conf file
+  template: src=wsgi-keystone.conf.j2 dest=/etc/apache2/sites-available/wsgi-keystone.conf
+  when: ansible_os_family == "Debian"
+
+- name: create soft link for wsgi-keystone.conf file
+  file: src=/etc/apache2/sites-available/wsgi-keystone.conf dest=/etc/apache2/sites-enabled/wsgi-keystone.conf owner=root group=root state=link 
+  when: ansible_os_family == "Debian"
+
+- name: restart apache2 service
+  service: name=apache2 state=restarted
+  when: ansible_os_family == "Debian"
+
+- name: remove keystone.db file
+  file: path=/var/lib/keystone/keystone.db state=absent
+
+- name: export OS_TOKEN and OS_URL
+  template: src=export.sh dest=/root/export.sh mode=0644
+
+- name: run the export.sh script to create endpoints for all services.
+  command: /bin/sh /root/export.sh
+
+- name: copy admin and demo openrc file
+  template: src={{ item.src }} dest=/root/{{ item.dest }} mode=0644
+  with_items:
+    - { src: admin-openrc.j2, dest: admin-openrc }
+    - { src: demo-openrc.j2, dest: demo-openrc }

@@ -1,0 +1,5 @@
+---
+- hosts: singlenode
+  become: true
+  roles:
+   - { role: ../roles/neutron }

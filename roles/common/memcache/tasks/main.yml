@@ -1,0 +1,24 @@
+---
+# tasks file for memcache
+- name: Install memcached package on Debian/Ubuntu servers
+  apt: name={{ item }} state=present force=yes
+  with_items:
+    - memcached
+    - python-memcache
+  when: ansible_os_family == "Debian"
+
+
+- name: Install memcached package on Redhat/Centos servers
+  apt: name={{ item }} state=present force=yes
+  with_items:
+    - memcached
+    - python-memcached
+  when: ansible_os_family == "RedHat"
+
+- name: restart memcached service on Debian/Ubuntu servers
+  service: name=memcached state=restarted
+  when: ansible_os_family == "Debian"
+
+- name: restart memcached service on Redhat/Centos servers
+  systemd: name=memcached state=restarted enabled=yes
+  when: ansible_os_family == "RedHat"

@@ -1,0 +1,22 @@
+# This is the default ansible 'hosts' file.
+#
+# It should live in /etc/ansible/hosts
+#
+#   - Comments begin with the '#' character
+#   - Blank lines are ignored
+#   - Groups of hosts are delimited by [header] elements
+#   - You can enter hostnames or ip addresses
+#   - A hostname/ip can be a member of multiple groups
+
+#Update the details according to the setup.
+# If you are deploying the openstack on the ansible server it self, you can use localhost domainmame. If not, you need to update the details of the hostname and pass the public of the ansible server.
+
+[singlenode:children]
+debianmachines
+#redhatmachines
+
+[debianmachines]
+localhost	ansible_connection=local	ansible_host=127.0.0.1	ansible_port=22
+
+#[redhatmachines]
+#controllerserver	ansible-connection=ssh	ansible_host=192.168.57.50	ansible_port=22

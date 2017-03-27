@@ -1,0 +1,6 @@
+---
+# tasks file for controller-horizon
+- hosts: singlenode
+  become: yes
+  roles:
+    - { role: ../roles/common/dashboard }

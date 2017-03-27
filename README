@@ -1,0 +1,142 @@
+Openstack Mitaka setup on single node (Ubuntu/Debian):
+######################################################
+
+1) Components that will be installed for the openstack setup in our environment.
+
+	a) keystone
+	b) glance
+	c) nova
+	d) neutron
+	e) dashboard
+
+2) For mysql, rabbitmq and memcache, we are using localhost IP address/domain (127.0.0.1/localhost).
+
+3) Endpoints for all the services are created on localhost name. Ex: http://localhost:35357
+
+4) For bridge use any one of the interface Ex: eth0/enp0s3 (provider), assign proper interface name in group_vars/all file
+	Ex: controller_interface: eth0
+
+5) This code is tested successfully on Debain machines. For all distributions, we will update soon.
+
+6) Pre-required checks:
+	a) Install Ubuntu/Debian server OS on Virtual server/ Physical server.
+	b) Make sure that you have atleast one NIC interface/vboxnet (Management IP: eth0/enp0s3) for the server.
+	c) Minimum of 4GB RAM and 60GB HDD.
+
+Tree structure of the ansible playbook for single node setup:
+#############################################################
+
+├── ansible.cfg
+├── group_vars
+│   └── all
+├── hosts
+├── playbooks
+│   ├── deploy_basic.yml
+│   ├── deploy_dashboard.yml
+│   ├── deploy_database.yml
+│   ├── deploy_glance.yml
+│   ├── deploy_keystone.yml
+│   ├── deploy_memcached.yml
+│   ├── deploy_newtron.yml
+│   ├── deploy_nova.yml
+│   └── deploy_rabbitmq.yml
+├── README
+├── roles
+│   ├── common
+│   │   ├── dashboard
+│   │   │   ├── handlers
+│   │   │   │   └── main.yml
+│   │   │   ├── README.md
+│   │   │   ├── tasks
+│   │   │   │   └── main.yml
+│   │   │   ├── templates
+│   │   │   │   └── local_settings.py.j2
+│   │   │   └── vars
+│   │   ├── database
+│   │   │   ├── handlers
+│   │   │   │   └── main.yml
+│   │   │   ├── README.md
+│   │   │   ├── tasks
+│   │   │   │   └── main.yml
+│   │   │   └── templates
+│   │   │       └── openstack.cnf.j2
+│   │   ├── memcache
+│   │   │   ├── handlers
+│   │   │   │   └── main.yml
+│   │   │   ├── README.md
+│   │   │   └── tasks
+│   │   │       └── main.yml
+│   │   └── rabbitmq
+│   │       ├── handlers
+│   │       │   └── main.yml
+│   │       ├── README.md
+│   │       └── tasks
+│   │           └── main.yml
+│   ├── compute
+│   │   ├── handlers
+│   │   │   └── main.yml
+│   │   ├── README.md
+│   │   └── tasks
+│   │       └── main.yml
+│   ├── glance
+│   │   ├── handlers
+│   │   │   └── main.yml
+│   │   ├── README.md
+│   │   └── tasks
+│   │       └── main.yml
+│   ├── keystone
+│   │   ├── handlers
+│   │   │   └── main.yml
+│   │   ├── README.md
+│   │   ├── tasks
+│   │   │   └── main.yml
+│   │   └── templates
+│   │       ├── admin-openrc.j2
+│   │       ├── demo-openrc.j2
+│   │       ├── export.sh
+│   │       └── wsgi-keystone.conf.j2
+│   └── neutron
+│       ├── handlers
+│       │   └── main.yml
+│       ├── README.md
+│       └── tasks
+│           └── main.yml
+├── site.yaml
+
+How to run the playbook:
+########################
+
+	a) Add the following entries according to your environment.
+		1) update the hosts file with the server hostname
+		2) change the group_vars/all file accordingly, like admin password, users password etc.,
+		3) group file is password protected (test123)
+
+	b) Copy the public of the ansible user to the node on which you will install Openstack.
+		ssh-keygen (to create keypair) and ssh-copy-id user@<ip/hostname> (copy the public key to remote server/local)
+
+	c) Execute the following command to check the connectivity from ansible server to Openstack node.
+		ansible all -m ping  --> If this step is successfull, then execute the site.yml playbook
+
+	d) check the syntax of the ansible code which you have downloaded.
+		ansible-playbook all site.yml --syntax-check
+
+	e) Now, run the playbook site.yml which will install from basic components like repo, database, etc to dashboard.
+		ansible-playbook all site.yml
+
+	f) If you facing issue while executing the above playbook, run playbook individually.
+		Ex: ansible-playbook playbook/deploy_basic.yml
+
+		---
+		- include: playbooks/deploy_basic.yml
+		- include: playbooks/deploy_database.yml
+		- include: playbooks/deploy_rabbitmq.yml
+		- include: playbooks/deploy_memcached.yml
+		- include: playbooks/deploy_keystone.yml
+		- include: playbooks/deploy_glance.yml
+		- include: playbooks/deploy_nova.yml
+		- include: playbooks/deploy_newtron.yml
+		- include: playbooks/deploy_dashboard.yml
+	
+	g) after successfull installation, access the openstack dashborad with the ipaddress/dashboard from your browser.
+
+Note: For further queries, drop a email to the address: dubareddy.383@gmail.com, dubasudhamsreddy@outlook.com

@@ -1,0 +1,85 @@
+---
+# tasks file for compute
+
+- name: Create database for keystone
+  mysql_db: login_host=localhost login_user=root login_password={{ mysql_root_password }} name={{ item }} state=present
+  with_items:
+    - nova
+    - nova_api
+  when: ansible_os_family == "Debian"
+
+- name: Create keystone database user and assign privileges
+  mysql_user: login_host=localhost login_user=root login_password={{ mysql_root_password }} name={{ item.name }} password={{ novadb_password }} priv='*.*:ALL' host={{ item.host }} state=present
+  with_items:
+    - { name: nova, host: localhost }
+    - { name: nova, host: '%' }
+    - { name: nova_api, host: localhost }
+    - { name: nova_api, host: '%' }
+  when: ansible_os_family == "Debian"
+
+- name: Install nova packages on node
+  apt: name={{ item }} state=present force=yes
+  with_items:
+    - nova-api
+    - nova-conductor
+    - nova-consoleauth
+    - nova-novncproxy
+    - nova-scheduler
+    - nova-compute
+  when: ansible_os_family == "Debian"
+
+- name: Update nova config file
+  ini_file: dest=/etc/nova/nova.conf
+            section="{{ item.section }}"
+            option="{{ item.option }}"
+            value="{{ item.value }}"
+            backup=yes
+  with_items:
+    - { section: 'DEFAULT', option: 'enabled_apis', value: 'osapi_compute,metadata' }
+    - { section: 'DEFAULT', option: 'rpc_backend', value: 'rabbit' }
+    - { section: 'DEFAULT', option: 'auth_strategy', value: 'keystone' }
+    - { section: 'DEFAULT', option: 'my_ip', value: "{{ controller_ipaddress }}" }
+    - { section: 'DEFAULT', option: 'use_neutron', value: 'True' }
+    - { section: 'DEFAULT', option: 'firewall_driver', value: "nova.virt.firewall.NoopFirewallDriver" }
+    - { section: 'api_database', option: 'connection', value: "mysql+pymysql://nova:{{ novadb_password }}@localhost/nova_api" }
+    - { section: 'database', option: 'connection', value: "mysql+pymysql://nova:{{ novadb_password }}@localhost/nova" }
+    - { section: 'oslo_messaging_rabbit', option: 'rabbit_hosts', value: "127.0.0.1" }
+    - { section: 'oslo_messaging_rabbit', option: 'rabbit_userid', value: 'openstack' }
+    - { section: 'oslo_messaging_rabbit', option: 'rabbit_password', value: "{{ rabbitmq_password }}" }
+    - { section: 'keystone_authtoken', option: 'auth_uri', value: "http://localhost:5000" }
+    - { section: 'keystone_authtoken', option: 'auth_url', value: "http://localhost:35357" }
+    - { section: 'keystone_authtoken', option: 'memcached_servers', value: "127.0.0.1:11211" }
+    - { section: 'keystone_authtoken', option: 'auth_type', value: 'password' }
+    - { section: 'keystone_authtoken', option: 'project_domain_name', value: 'default' }
+    - { section: 'keystone_authtoken', option: 'user_domain_name', value: 'default' }
+    - { section: 'keystone_authtoken', option: 'project_name', value: 'service' }
+    - { section: 'keystone_authtoken', option: 'username', value: 'nova' }
+    - { section: 'keystone_authtoken', option: 'password', value: "{{ serviceuser_password }}" }
+    - { section: 'vnc', option: 'enabled', value: "True" }
+    - { section: 'vnc', option: 'vncserver_listen', value: "$my_ip" }
+    - { section: 'vnc', option: 'vncserver_proxyclient_address', value: "$my_ip" }
+    - { section: 'vnc', option: 'novncproxy_base_url', value: "http://{{ controller_ipaddress }}:6080/vnc_auto.html" }
+    - { section: 'glance', option: 'api_servers', value: "http://localhost:9292" }
+    - { section: 'oslo_concurrency', option: 'lock_path', value: "/var/lib/nova/tmp" }
+
+- name: Configure libvirt section in nova-compute.conf
+  ini_file: dest=/etc/nova/nova-compute.conf
+            section=libvirt
+            option=virt_type
+            value=qemu
+
+- name: sync nova_api database
+  command: /bin/su -s /bin/sh -c "nova-manage api_db sync" nova
+
+- name: sync nova database
+  command: /bin/su -s /bin/sh -c "nova-manage db sync" nova
+
+- name: restart all nova service
+  service: name={{ item }} state=restarted
+  with_items:
+    - nova-api
+    - nova-consoleauth
+    - nova-scheduler
+    - nova-conductor
+    - nova-novncproxy
+    - nova-compute
