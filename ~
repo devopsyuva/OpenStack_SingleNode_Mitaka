@@ -1,6 +1,0 @@
----
-- hosts: all
-  strategy: debug
-  tasks:
-    - name: check the inventory hostname
-      command: echo {{ hostname }}
