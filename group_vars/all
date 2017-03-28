@@ -1,7 +1,7 @@
 ---
 controller_localhost: localhost
-controller: "{{ hostvars[groups['singlenode'][0]]['ansible_hostname'] }}"
-controller_ipaddress: "{{ hostvars[groups['singlenode'][0]]['ansible_' + interface_name ]['ipv4']['address'] }}" 
+controller: "{{ hostvars[inventory_hostname]['ansible_hostname'] }}"
+controller_ipaddress: "{{ hostvars[inventory_hostname]['ansible_' + interface_name ]['ipv4']['address'] }}"
 interface_name: eth1
 mysql_root_password: test123
 rabbitmq_password: test123
