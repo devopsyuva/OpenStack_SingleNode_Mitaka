@@ -2,19 +2,31 @@
 # tasks file for keystone
 - name: Create database for keystone
   mysql_db: login_host=localhost login_user=root login_password={{ mysql_root_password }} name=keystone state=present
+<<<<<<< HEAD
+=======
+  when: ansible_os_family == "Debian"
+>>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
 
 - name: Create keystone database user and assign privileges
   mysql_user: login_host=localhost login_user=root login_password={{ mysql_root_password }} name=keystone password={{ keystonedb_password }} priv='*.*:ALL' host={{ item }} state=present
   with_items:
     - localhost
     - '%'
+<<<<<<< HEAD
+=======
+  when: ansible_os_family == "Debian"
+>>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
 
 - name: Checking Administration Token
   stat: path=/root/token
   register: admin_tok
 
 - name: create administration token during initial configuration
+<<<<<<< HEAD
   shell: openssl rand -hex 10 > /root/token
+=======
+  shell: openssl rand -hex 10 > token
+>>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
   when: admin_tok.stat.exists != True 
 
 - name: regietr the token value to key=ADMIN_TOKEN
@@ -85,6 +97,9 @@
   with_items:
     - { src: admin-openrc.j2, dest: admin-openrc }
     - { src: demo-openrc.j2, dest: demo-openrc }
+<<<<<<< HEAD
 
 - name: run admin script for next task
   command: /bin/sh /root/admin-openrc
+=======
+>>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f

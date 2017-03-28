@@ -23,7 +23,10 @@
     - mariadb-server
     - mariadb
     - python2-PyMySQL
+<<<<<<< HEAD
     - MySQL-python
+=======
+>>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
   when: ansible_os_family == "RedHat"
 
 - name: create openstack.cnf file under "/etc/mysql/conf.d"

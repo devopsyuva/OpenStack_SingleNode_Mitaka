@@ -32,8 +32,12 @@
      when: ansible_os_family == "RedHat"
 
    - name: check for the kernel upgrade
+<<<<<<< HEAD
 #     shell: "if [ $(readlink -f /vmlinuz) != /boot/vmlinuz-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi"
      shell: "if [ $(uname -r) == /boot/vmlinuz-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi"
+=======
+     shell: "if [ $(readlink -f /vmlinuz) != /boot/vmlinuz-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi"
+>>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
      async: 120
      poll: 5
      ignore_errors: yes
