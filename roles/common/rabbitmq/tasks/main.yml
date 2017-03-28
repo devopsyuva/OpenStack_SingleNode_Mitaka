@@ -1,0 +1,23 @@
+---
+# tasks file for rabbitmq
+- name: Install rabbitmq package on Debian/Ubuntu server
+  apt: name=rabbitmq-server state=present force=yes
+  when: ansible_os_family == "Debian"
+
+- name: Install rabbitmq package on Redhat/Centos server
+  yum: name=rabbitmq-server state=present
+  when: ansible_os_family == "RedHat"
+
+- name: Enable the service to start on boot in Redhat/Centos machines
+  systemd: name=rabbitmq-server state=restarted enabled=yes
+  when: ansible_os_family == "RedHat"
+
+- name: create user/password and assign prvileges
+  rabbitmq_user:
+    user: openstack
+    password: "{{ rabbitmq_password }}"
+    vhost: /
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
+    state: present

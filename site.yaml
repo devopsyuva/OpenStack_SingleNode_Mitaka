@@ -1,0 +1,10 @@
+---
+- include: playbooks/deploy_basic.yml
+- include: playbooks/deploy_database.yml
+- include: playbooks/deploy_rabbitmq.yml
+- include: playbooks/deploy_memcached.yml
+- include: playbooks/deploy_keystone.yml
+- include: playbooks/deploy_glance.yml
+- include: playbooks/deploy_nova.yml
+- include: playbooks/deploy_newtron.yml
+- include: playbooks/deploy_dashboard.yml

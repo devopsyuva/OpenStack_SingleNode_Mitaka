@@ -1,0 +1,66 @@
+---
+# tasks file for glance
+
+- name: Create database for keystone
+  mysql_db: login_host=localhost login_user=root login_password={{ mysql_root_password }} name=glance state=present
+
+- name: Create keystone database user and assign privileges
+  mysql_user: login_host=localhost login_user=root login_password={{ mysql_root_password }} name=glance password={{ glancedb_password }} priv='*.*:ALL' host={{ item }} state=present
+  with_items:
+    - localhost
+    - '%'
+
+- name: Install glance package
+  apt: name=glance state=present force=yes
+  when: ansible_os_family == "Debian"
+
+- name: update the glance-api file
+  ini_file: dest=/etc/glance/glance-api.conf
+            section={{ item.section }}
+            option={{ item.option }}
+            value={{ item.value }}
+  with_items:
+    - { section: database, option: connection, value: "mysql+pymysql://glance:{{ glancedb_password }}@localhost/glance" }
+    - { section: keystone_authtoken, option: auth_uri, value: "http://{{ controller_localhost }}:5000" }
+    - { section: keystone_authtoken, option: auth_url, value: "http://{{ controller_localhost }}:35357" }
+    - { section: keystone_authtoken, option: memcached_server, value: "localhost:11211" }
+    - { section: keystone_authtoken, option: auth_type, value: "password" }
+    - { section: keystone_authtoken, option: project_domain_name, value: default }
+    - { section: keystone_authtoken, option: user_domain_name, value: default }
+    - { section: keystone_authtoken, option: project_name, value: service }
+    - { section: keystone_authtoken, option: username, value: glance }
+    - { section: keystone_authtoken, option: password, value: "{{ serviceuser_password }}" }
+    - { section: paste_deploy, option: flavor, value: keystone }
+    - { section: glance_store, option: stores, value: "file,http" }
+    - { section: glance_store, option: default_store, value: file }
+    - { section: glance_store, option: filesystem_store_datadir, value: "/var/lib/glance/images/" }
+
+
+- name: update the glance-registry file
+  ini_file: dest=/etc/glance/glance-registry.conf
+            section={{ item.section }}
+            option={{ item.option }}
+            value={{ item.value }}
+  with_items:
+    - { section: database, option: connection, value: "mysql+pymysql://glance:{{ glancedb_password }}@localhost/glance" }
+    - { section: keystone_authtoken, option: auth_uri, value: "http://{{ controller_localhost }}:5000" }
+    - { section: keystone_authtoken, option: auth_url, value: "http://{{ controller_localhost }}:35357" }
+    - { section: keystone_authtoken, option: memcached_server, value: "localhost:11211" }
+    - { section: keystone_authtoken, option: auth_type, value: "password" }
+    - { section: keystone_authtoken, option: project_domain_name, value: default }
+    - { section: keystone_authtoken, option: user_domain_name, value: default }
+    - { section: keystone_authtoken, option: project_name, value: service }
+    - { section: keystone_authtoken, option: username, value: glance }
+    - { section: keystone_authtoken, option: password, value: "{{ serviceuser_password }}" }
+    - { section: paste_deploy, option: flavor, value: keystone }
+
+- name: sync the glance database
+  command: su -s /bin/sh -c "glance-manage db_sync" glance
+  become: su
+
+- name: restart glance services
+  service: name={{ item }} state=restarted
+  with_items:
+    - glance-api
+    - glance-registry
+  when: ansible_os_family == "Debian"

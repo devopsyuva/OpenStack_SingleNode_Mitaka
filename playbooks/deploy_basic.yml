@@ -1,0 +1,55 @@
+---
+- hosts: all
+  tasks:
+   - name: Install openstack repo package on Debain machine
+     apt: name=software-properties-common state=present update_cache=yes
+     when: ansible_os_family == "Debian"
+
+   - name: Install openstack repo package on RedHat machine
+     yum: name={{ item }} state=present update_cache=yes
+     with_items:
+       - centos-release-openstack-mitaka
+       - 'https://rdoproject.org/repos/rdo-release.rpm'
+     register: repo_out
+     ignore_errors: true
+     changed_when: "repo_out.rc == 0"
+     when: ansible_os_family == "RedHat"
+
+   - name: Create repo file for Mitaka
+     lineinfile:
+        dest: /etc/apt/sources.list.d/cloudarchive-mitaka.list
+        line: "deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/mitaka main"
+        create: yes
+     when: ansible_os_family == "Debian"
+     tags: deploy_ppa
+
+   - name: Upgrade the package on the Debain server
+     apt: upgrade=dist update_cache=yes force=yes
+     when: ansible_os_family == "Debian"
+
+   - name: Upgrade the package on the RedHat server
+     yum: name='*' state=latest
+     when: ansible_os_family == "RedHat"
+
+   - name: check for the kernel upgrade
+#     shell: "if [ $(readlink -f /vmlinuz) != /boot/vmlinuz-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi"
+     shell: "if [ $(uname -r) == /boot/vmlinuz-$(uname -r) ]; then echo 'reboot'; else echo 'no'; fi"
+     async: 120
+     poll: 5
+     ignore_errors: yes
+     register: kernel_state
+
+   - name: Login to the server and verify the connection, then press ENTER
+     pause:
+     when: kernel_state.stdout.find("reboot") != -1
+
+   - name: Install openstack client package
+     apt: name=python-openstackclient state=present force=yes
+     when: ansible_os_family == "Debian"
+  
+   - name: Install Openstack client and openstack selinux package on RedHat machines
+     yum: name={{ item }} state=present
+     with_items:
+       - python-openstackclient
+       - openstack-selinux
+     when: ansible_os_family == "RedHat"
