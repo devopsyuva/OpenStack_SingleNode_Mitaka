@@ -3,20 +3,12 @@
 
 - name: Create database for keystone
   mysql_db: login_host=localhost login_user=root login_password={{ mysql_root_password }} name=glance state=present
-<<<<<<< HEAD
-=======
-  when: ansible_os_family == "Debian"
->>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
 
 - name: Create keystone database user and assign privileges
   mysql_user: login_host=localhost login_user=root login_password={{ mysql_root_password }} name=glance password={{ glancedb_password }} priv='*.*:ALL' host={{ item }} state=present
   with_items:
     - localhost
     - '%'
-<<<<<<< HEAD
-=======
-  when: ansible_os_family == "Debian"
->>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
 
 - name: Install glance package
   apt: name=glance state=present force=yes
@@ -27,10 +19,6 @@
             section={{ item.section }}
             option={{ item.option }}
             value={{ item.value }}
-<<<<<<< HEAD
-=======
-            backup=yes
->>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
   with_items:
     - { section: database, option: connection, value: "mysql+pymysql://glance:{{ glancedb_password }}@localhost/glance" }
     - { section: keystone_authtoken, option: auth_uri, value: "http://{{ controller_localhost }}:5000" }
@@ -53,10 +41,6 @@
             section={{ item.section }}
             option={{ item.option }}
             value={{ item.value }}
-<<<<<<< HEAD
-=======
-            backup=yes
->>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
   with_items:
     - { section: database, option: connection, value: "mysql+pymysql://glance:{{ glancedb_password }}@localhost/glance" }
     - { section: keystone_authtoken, option: auth_uri, value: "http://{{ controller_localhost }}:5000" }
@@ -72,10 +56,6 @@
 
 - name: sync the glance database
   command: su -s /bin/sh -c "glance-manage db_sync" glance
-<<<<<<< HEAD
-  become: su
-=======
->>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
 
 - name: restart glance services
   service: name={{ item }} state=restarted

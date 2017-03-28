@@ -6,10 +6,6 @@
   with_items:
     - nova
     - nova_api
-<<<<<<< HEAD
-=======
-  when: ansible_os_family == "Debian"
->>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
 
 - name: Create keystone database user and assign privileges
   mysql_user: login_host=localhost login_user=root login_password={{ mysql_root_password }} name={{ item.name }} password={{ novadb_password }} priv='*.*:ALL' host={{ item.host }} state=present
@@ -18,10 +14,6 @@
     - { name: nova, host: '%' }
     - { name: nova_api, host: localhost }
     - { name: nova_api, host: '%' }
-<<<<<<< HEAD
-=======
-  when: ansible_os_family == "Debian"
->>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
 
 - name: Install nova packages on node
   apt: name={{ item }} state=present force=yes
@@ -39,10 +31,6 @@
             section="{{ item.section }}"
             option="{{ item.option }}"
             value="{{ item.value }}"
-<<<<<<< HEAD
-=======
-            backup=yes
->>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
   with_items:
     - { section: 'DEFAULT', option: 'enabled_apis', value: 'osapi_compute,metadata' }
     - { section: 'DEFAULT', option: 'rpc_backend', value: 'rabbit' }
@@ -92,7 +80,4 @@
     - nova-conductor
     - nova-novncproxy
     - nova-compute
-<<<<<<< HEAD
   when: ansible_os_family == "Debian"
-=======
->>>>>>> 847ec1d94ecb6405c6b1995c71573035f91a247f
