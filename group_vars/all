@@ -2,7 +2,7 @@
 controller_localhost: localhost
 controller: "{{ hostvars[inventory_hostname]['ansible_hostname'] }}"
 controller_ipaddress: "{{ hostvars[inventory_hostname]['ansible_' + interface_name ]['ipv4']['address'] }}"
-interface_name: eth1
+interface_name: "{{ ansible_interfaces[2] }}" # Update the array value according to the interafce count in facts output
 mysql_root_password: test123
 rabbitmq_password: test123
 keystonedb_password: test123
