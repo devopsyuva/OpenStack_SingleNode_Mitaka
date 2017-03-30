@@ -13,10 +13,10 @@ Openstack Mitaka setup on single node (Ubuntu/Debian):
 
 3) Endpoints for all the services are created on localhost name. Ex: http://localhost:35357
 
-4) For bridge use any one of the interface Ex: eth0/enp0s3 (provider), assign proper interface name in group_vars/all file
-	Ex: controller_interface: eth0
+4) For bridge use any one of the interface Ex: eth0/enp0s3 (provider), assign proper interface array number in group_vars/all file
+	Ex: controller_interface:
 
-5) This code is tested successfully on Debain machines. For all distributions, we will update soon.
+5) This code is tested successfully on Debain machines.
 
 6) Pre-required checks:
 	a) Install Ubuntu/Debian server OS on Virtual server/ Physical server.
@@ -118,10 +118,10 @@ How to run the playbook:
 		ansible all -m ping  --> If this step is successfull, then execute the site.yml playbook
 
 	d) check the syntax of the ansible code which you have downloaded.
-		ansible-playbook all site.yml --syntax-check
+		ansible-playbook site.yml --syntax-check
 
 	e) Now, run the playbook site.yml which will install from basic components like repo, database, etc to dashboard.
-		ansible-playbook all site.yml
+		ansible-playbook site.yml
 
 	f) If you facing issue while executing the above playbook, run playbook individually.
 		Ex: ansible-playbook playbook/deploy_basic.yml
