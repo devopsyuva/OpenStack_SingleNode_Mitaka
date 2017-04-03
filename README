@@ -110,6 +110,7 @@ How to run the playbook:
 		1) update the hosts file with the server hostname
 		2) change the group_vars/all file accordingly, like admin password, users password etc.,
 		3) group file is password protected (test123)
+Note: Place the playbook code ( ansible.cfg, hosts, group_vars, roles etc) under /etc/ansible directory after removing the detault files.
 
 	b) Copy the public of the ansible user to the node on which you will install Openstack.
 		ssh-keygen (to create keypair) and ssh-copy-id user@<ip/hostname> (copy the public key to remote server/local)
