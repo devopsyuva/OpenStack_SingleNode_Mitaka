@@ -137,7 +137,8 @@ Note: Place the playbook code ( ansible.cfg, hosts, group_vars, roles etc) under
 		- include: playbooks/deploy_nova.yml
 		- include: playbooks/deploy_newtron.yml
 		- include: playbooks/deploy_dashboard.yml
-	
+
 	g) after successfull installation, access the openstack dashborad with the ipaddress/dashboard from your browser.
 
-Note: For further queries, drop a email to the address: dubareddy.383@gmail.com, dubasudhamsreddy@outlook.com
+Note: For further queries, drop a email to the address: linosrikanth@gmail.com
+github url: https://github.com/srikanthchandika
